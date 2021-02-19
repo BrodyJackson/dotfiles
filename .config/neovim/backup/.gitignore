@@ -1,0 +1,3 @@
+# Ignore everything in this directory except git ignore
+# This directory is template for automatic neovim confiuration
+!.gitignore

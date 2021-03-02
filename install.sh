@@ -114,7 +114,7 @@ alias ll='ls -l'
 alias tmux='tmux -2'
 alias gd="git diff -- . ':!package-lock.json' ':!yarn.lock'"
 # This one is important for getting dotfile git repo working
-alias dotfiles='/usr/bin/git --git-dir=/Users/brody.jackson/.dotfiles/ --work-tree=/Users/brody.jackson'
+alias dotfiles='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
 # Export terminal colors
 export TERM="xterm-256color"
 EoM

@@ -17,9 +17,6 @@ let g:which_key_map['?'] = 'search word'
 " rip grep current word
 noremap <leader>O :RG <C-R>=expand("<cword>")<CR><CR>
 
-" file search current word
-noremap <leader>P :Files <C-R>=expand("<cword>")<CR><CR>
-
 let g:which_key_map['O'] = 'RG word'
 
 " Not a fan of floating windows for this

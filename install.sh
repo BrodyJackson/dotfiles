@@ -27,7 +27,6 @@ brew upgrade --all
 
 brew install wget
 brew install zsh
-brew install nvm
 brew install git
 brew install pyenv
 brew install the_silver_searcher
@@ -41,6 +40,7 @@ brew install zlib
 
 ##Zsh extenstions
 brew install autojump
+brew tap sambadevi/powerlevel9k
 brew install powerlevel9k
 brew install zsh-autosuggestions
 brew install zsh-completions
@@ -50,6 +50,8 @@ brew install --cask google-chrome
 brew install --cask slack
 brew install --cask firefox
 brew install --cask kitty
+#you will most likely need to provide additional permissions for karabiner to work. Opening it and following instructions shuold work
+brew install --cask karabiner-elements
 
 brew tap homebrew/cask-fonts
 brew install --cask font-fira-code
@@ -61,14 +63,21 @@ brew install --cask font-hack-nerd-font
 # Zsh Configuration
 chsh -s /usr/local/bin/zsh
 
+#Install nvm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.37.2/install.sh | bash
 nvm install node
+nvm use node
+npm install -g neovim
+
+#Setup python
+pyenv install 3.9.1
 
 #Tmux
 tmux source ~/.tmux.conf
 
 #Install Vim-Plug
-curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
-    https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+       https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
 #Install nvim plugins
 nvim +PlugInstall
 

@@ -1,6 +1,6 @@
 source ~/.nvm/nvm.sh
 source ~/.sensitive
-#export PATH="/usr/local/opt/libpq/bin:$PATH"
+export PATH=$PATH:~/kubectl-plugins
 eval "$(pyenv init -)"
 
 #Make sure that tmux uses vim colors rather than it's own

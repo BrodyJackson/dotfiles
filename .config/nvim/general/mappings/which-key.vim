@@ -42,7 +42,8 @@ let g:which_key_map['='] = [ '<C-W>='                             , 'balance win
 let g:which_key_map['d'] = [ ':bd'                                , 'delete buffer']
 let g:which_key_map['e'] = [ ':CocCommand explorer'               , 'explorer' ]
 let g:which_key_map['h'] = [ '<C-W>s'                             , 'split below']
-let g:which_key_map['m'] = [ ':call WindowSwap#EasyWindowSwap()'  , 'move window' ]
+let g:which_key_map['M'] = [ ':call WindowSwap#EasyWindowSwap()'  , 'move window' ]
+let g:which_key_map['m'] = [ ':MaximizerToggle'                   , 'Maximize Pane']
 let g:which_key_map['n'] = [ ':let @/ = ""'                       , 'no highlight' ]
 let g:which_key_map['o'] = [ ':RG'                                , 'text search']
 let g:which_key_map['p'] = [ ':Files'                             , 'search files' ]
@@ -75,7 +76,7 @@ let g:which_key_map.a = {
       \ }
 
 " b is for buffer
-let g:which_key_map.b = {
+let g:which_key_map.B = {
       \ 'name' : '+buffer' ,
       \ '1' : ['b1'        , 'buffer 1'],
       \ '2' : ['b2'        , 'buffer 2'],
@@ -86,6 +87,26 @@ let g:which_key_map.b = {
       \ 'n' : ['bnext'     , 'next-buffer'],
       \ 'p' : ['bprevious' , 'previous-buffer'],
       \ '?' : ['Buffers'   , 'fzf-buffer'],
+      \ }
+
+let g:which_key_map.b = {
+      \ 'name': '+debugger' ,
+      \ 'l': [':call vimspector#Launch()<CR>', 'launch'],
+      \ 'x': [':call vimspector#Reset()<CR>', 'Reset'],
+      \ 'g': [':call vimspector#Continue()<CR>', 'continue'],
+      \ 'w': [':call AddToWatch()<CR>', 'add to watch'],
+      \ 'h': ['<Plug>VimSpectorStepInto', 'step into'],
+      \ 'k': ['<Plug>VimSpectorStepOver', 'step over'],
+      \ 'j': ['<Plug>VimSpectorStepOut', 'step out'],
+      \ 'r': ['<Plug>VimSpectorRestart', 'restart'],
+      \ 't': ['<Plug>VimspectorToggleBreakpoint', 'toggle breakpoint'],
+      \ 'c': ['<Plug>VimspectorRunToCursor', 'run to cursor'],
+      \ 'd': [':call vimspector#ClearBreakpoints', 'clear breakpoints'],
+      \ '1': [':call GotoWindow(g:vimspector_session_windows.code)<CR>', 'goto code'],
+      \ '2': [':call GotoWindow(g:vimspector_session_windows.variables)<CR>', 'goto variables'],
+      \ '3': [':call GotoWindow(g:vimspector_session_windows.watches)<CR>', 'goto watches'],
+      \ '4': [':call GotoWindow(g:vimspector_session_windows.stack_trace)<CR>', 'goto stack'],
+      \ '5': [':call GotoWindow(g:vimspector_session_windows.output)<CR>', 'goto output'],
       \ }
 
 " f is for find and replace

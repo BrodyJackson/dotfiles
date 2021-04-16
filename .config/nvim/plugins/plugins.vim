@@ -59,7 +59,11 @@ call plug#begin("~/.vim/plugged")
   Plug 'tpope/vim-commentary'
   " Focus Mode
   Plug 'junegunn/goyo.vim'
-  " THEMES
+  " debugger
+  Plug 'puremourning/vimspector'
+  " window maximizer
+  Plug 'szw/vim-maximizer' 
+  "" THEMES
   Plug 'dracula/vim'
   Plug 'morhetz/gruvbox'
   Plug 'ayu-theme/ayu-vim'

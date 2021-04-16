@@ -37,6 +37,7 @@ brew install tmuxinator
 brew install lazygit
 brew install lazydocker
 brew install zlib
+brew install jq
 
 ##Zsh extenstions
 brew install autojump

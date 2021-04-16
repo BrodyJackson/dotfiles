@@ -34,6 +34,8 @@ source $HOME/.config/nvim/plug-configs/vista.vim
 source $HOME/.config/nvim/plug-configs/window-swap.vim
 source $HOME/.config/nvim/plug-configs/start-screen.vim
 source $HOME/.config/nvim/plug-configs/closetags.vim
+source $HOME/.config/nvim/plug-configs/vimspector.vim
+
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Themes 

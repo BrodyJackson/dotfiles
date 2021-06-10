@@ -70,4 +70,5 @@ call plug#begin("~/.vim/plugged")
   Plug 'arcticicestudio/nord-vim'
   Plug 'Rigellute/rigel'
   Plug 'vim-airline/vim-airline-themes'
+  Plug 'NLKNguyen/papercolor-theme'
 call plug#end()

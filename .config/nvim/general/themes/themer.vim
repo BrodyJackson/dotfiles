@@ -43,6 +43,11 @@ let g:colorSchemeList['Gruvbox Light'] = [
       \   "let g:gruvbox_invert_selection =0",
       \   "let g:airline_theme='gruvbox'",
       \   ]
+let g:colorSchemeList['PaperColor Light'] = [
+      \   'colorscheme PaperColor',
+      \   'set background=light',
+      \   'AirlineTheme papercolor',
+      \   ]
 
 function SwitchColorScheme(name)
   for l:item in g:colorSchemeList[a:name]

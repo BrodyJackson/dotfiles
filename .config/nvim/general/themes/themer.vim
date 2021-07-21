@@ -12,6 +12,7 @@ let g:colorSchemeList['Rigel'] = [
       \   'set background=dark',
       \   "let g:rigel_italic=1",
       \   "let g:rigel_bold=1",
+      \   "AirlineTheme rigel",
       \   ]
 let g:colorSchemeList['Dracula'] = [
       \   'set termguicolors',
@@ -19,13 +20,13 @@ let g:colorSchemeList['Dracula'] = [
       \   'set background=dark',
       \   "let g:dracula_italic=1",
       \   "let g:dracula=1",
-      \   "let g:airline_theme='dracula'",
+      \   "AirlineTheme dracula",
       \   ]
 let g:colorSchemeList['Nord'] = [
       \   'colorscheme nord',
       \   "let g:nord_italic=1",
       \   "let g:nord_underline=1",
-      \   "let g:airline_theme='nord'",
+      \   "AirlineTheme nord",
       \   ]
 let g:colorSchemeList['Gruvbox Dark'] = [
       \   'colorscheme gruvbox',
@@ -33,7 +34,7 @@ let g:colorSchemeList['Gruvbox Dark'] = [
       \   "let g:gruvbox_contrast_dark ='hard'",
       \   "let g:gruvbox_sign_column ='bg0'",
       \   "let g:gruvbox_invert_selection =0",
-      \   "let g:airline_theme='gruvbox'",
+      \   "AirlineTheme gruvbox",
       \   ]
 let g:colorSchemeList['Gruvbox Light'] = [
       \   'colorscheme gruvbox',
@@ -41,7 +42,7 @@ let g:colorSchemeList['Gruvbox Light'] = [
       \   "let g:gruvbox_contrast_light ='hard'",
       \   "let g:gruvbox_sign_column ='bg0'",
       \   "let g:gruvbox_invert_selection =0",
-      \   "let g:airline_theme='gruvbox'",
+      \   "AirlineTheme gruvbox",
       \   ]
 let g:colorSchemeList['PaperColor Light'] = [
       \   'colorscheme PaperColor',

@@ -49,6 +49,12 @@ let g:colorSchemeList['PaperColor Light'] = [
       \   'set background=light',
       \   'AirlineTheme papercolor',
       \   ]
+let g:colorSchemeList['Ayu Light'] = [
+      \   'colorscheme ayu',
+      \   'let ayucolor="light"',
+      \   'set background=light',
+      \   'AirlineTheme ayu',
+      \   ]
 
 function SwitchColorScheme(name)
   for l:item in g:colorSchemeList[a:name]

@@ -35,6 +35,8 @@ source $HOME/.config/nvim/plug-configs/window-swap.vim
 source $HOME/.config/nvim/plug-configs/start-screen.vim
 source $HOME/.config/nvim/plug-configs/closetags.vim
 source $HOME/.config/nvim/plug-configs/vimspector.vim
+source $HOME/.config/nvim/plug-configs/dap.vim
+source $HOME/.config/nvim/plug-configs/treesitter.vim
 
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""

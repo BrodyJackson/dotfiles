@@ -50,9 +50,9 @@ let g:colorSchemeList['PaperColor Light'] = [
       \   'AirlineTheme papercolor',
       \   ]
 let g:colorSchemeList['Ayu Light'] = [
-      \   'colorscheme ayu',
-      \   'let ayucolor="light"',
       \   'set background=light',
+      \   'let g:ayucolor="light"',
+      \   'colorscheme ayu',
       \   'AirlineTheme ayu',
       \   ]
 

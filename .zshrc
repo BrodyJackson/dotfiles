@@ -45,6 +45,7 @@ POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD=0.5
 command -v helm > /dev/null 2>&1 && source <(helm completion zsh)
 command -v kubectl > /dev/null 2>&1 && source <(kubectl completion zsh) && compdef k='kubectl'
 alias k='kubectl'
+alias k9s='docker run --rm -it -v ${HOME}/.kube/config:/root/.kube/config quay.io/derailed/k9s'
 
 #Kubernetes Tools zsh completion start
 autoload -U compaudit compinit bashcompinit

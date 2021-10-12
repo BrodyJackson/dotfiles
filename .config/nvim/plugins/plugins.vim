@@ -54,13 +54,15 @@ call plug#begin("~/.vim/plugged")
   " <3 COC 
   Plug 'neoclide/coc.nvim', {'branch': 'release'}
   " More Syntax support
-  Plug 'sheerun/vim-polyglot'
+  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+  " Turned off polyglot in order to try native treesitter
+  " Plug 'sheerun/vim-polyglot'
   " Commenting support
   Plug 'tpope/vim-commentary'
   " Focus Mode
   Plug 'junegunn/goyo.vim'
   " debugger
-  Plug 'puremourning/vimspector'
+  Plug 'mfussenegger/nvim-dap'
   " window maximizer
   Plug 'szw/vim-maximizer' 
   "" THEMES

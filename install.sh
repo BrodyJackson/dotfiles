@@ -41,8 +41,7 @@ brew install jq
 
 ##Zsh extenstions
 brew install autojump
-brew tap sambadevi/powerlevel9k
-brew install powerlevel9k
+brew install romkatv/powerlevel10k/powerlevel10k
 brew install zsh-autosuggestions
 brew install zsh-completions
 brew install zsh-syntax-highlighting

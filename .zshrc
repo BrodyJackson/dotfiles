@@ -1,71 +1,81 @@
+# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
+# Initialization code that may require console input (password prompts, [y/n]
+# confirmations, etc.) must go above this block; everything else may go below.
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 source ~/.nvm/nvm.sh
 source ~/.sensitive
-export PATH=$PATH:~/kubectl-plugins
-eval "$(pyenv init -)"
 
-#Make sure that tmux uses vim colors rather than it's own
-alias tmux='tmux -2'
+# Manage python versions with pyenv
+eval "$(pyenv init -)"
 
 # Export terminal colors
 export TERM="xterm-256color"
 
-# Lines configured by zsh-newuser-install
+# globbing completetion is case insensitive
+setopt NO_CASE_GLOB
+# no need to type cd
+setopt AUTO_CD
+# setup history options for zsh,
 HISTFILE=~/.histfile
 HISTSIZE=5000
 SAVEHIST=2000
-setopt appendhistory
+setopt APPEND_HISTORY
+# share history between multiple instances
+setopt SHARE_HISTORY
+# expire duplicates first
+setopt HIST_EXPIRE_DUPS_FIRST 
+# do not store duplications
+setopt HIST_IGNORE_DUPS
+#ignore duplicates when searching
+setopt HIST_FIND_NO_DUPS
+# removes blank lines from history
+setopt HIST_REDUCE_BLANKS
+# append to history after each command rather than on exit
+setopt INC_APPEND_HISTORY
+
 bindkey -e
-# End of lines configured by zsh-newuser-install
-
-# The following lines were added by compinstall
-# zstyle :compinstall filename '/Users/ccyr/.zshrc'
- 
-autoload -Uz compinit
-compinit
-# End of lines added by compinstall
-
 # Enable Delete Forward Key
 bindkey    "^[[3~"          delete-char
 bindkey    "^[3;5~"         delete-char
 
-fpath=(/usr/local/share/zsh-completions $fpath)
-source /usr/local/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-[ -f /usr/local/etc/profile.d/autojump.sh ] && . /usr/local/etc/profile.d/autojump.sh
+# case insensitive path-completion 
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*' 'm:{[:lower:][:upper:]}={[:upper:][:lower:]} l:|=* r:|=*'
+#Turn on completions
+autoload -Uz compinit && compinit
 
-source ~/.powerlevel9krc
-POWERLEVEL9K_MODE='nerdfont-complete'
-source /usr/local/opt/powerlevel9k/powerlevel9k.zsh-theme
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(ssh dir dir_writable vcs)
-POWERLEVEL9K_RIGHT_PROMPT_ELEMENTS=(status command_execution_time load ram time)
-POWERLEVEL9K_PROMPT_ADD_NEWLINE=true
-POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_last
-POWERLEVEL9K_COMMAND_EXECUTION_TIME_THRESHOLD=0.5
+#turn on autojump
+[ -f $(brew --prefix)/etc/profile.d/autojump.sh ] && . $(brew --prefix)/etc/profile.d/autojump.sh
+#turn on autosuggestions
+source $(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+#turn on syntax highlighting
+source $(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-command -v helm > /dev/null 2>&1 && source <(helm completion zsh)
-command -v kubectl > /dev/null 2>&1 && source <(kubectl completion zsh) && compdef k='kubectl'
 alias k='kubectl'
 alias k9s='docker run --rm -it -v ${HOME}/.kube/config:/root/.kube/config quay.io/derailed/k9s'
 
-#Kubernetes Tools zsh completion start
-autoload -U compaudit compinit bashcompinit
-compaudit && compinit && bashcompinit
-source /usr/local/Cellar/kubernetes-tools/2.1.0/completion/__completion
-#Kubernetes Tools zsh completion end
+alias gd="git diff -- . ':!package-lock.json' ':!yarn.lock'"
+alias dotfiles='/usr/bin/git --git-dir=/Users/brody.jackson/.dotfiles/ --work-tree=/Users/brody.jackson'
+alias lazydotfiles='lazygit --git-dir=/Users/brody.jackson/.dotfiles/ --work-tree=/Users/brody.jackson'
 
-# Aliases
+#Make sure that tmux uses vim colors rather than it's own
+alias tmux='tmux -2'
+
 alias ls='ls -G'
 alias ll='ls -l'
 
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-
-# Custom functions
+source ~/.personalScripts.sh
 
 # Run python file with arguments held in runtime configuration
 runpy () {
   python $1 $(cat ~/dev/runConfigs/$2)
 }
 
-alias gd="git diff -- . ':!package-lock.json' ':!yarn.lock'"
-alias dotfiles='/usr/bin/git --git-dir=/Users/brody.jackson/.dotfiles/ --work-tree=/Users/brody.jackson'
+# Source powerlevel10k
+source /usr/local/opt/powerlevel10k/powerlevel10k.zsh-theme
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# source FZF
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

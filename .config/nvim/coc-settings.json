@@ -21,7 +21,7 @@
   // list
   "list.indicator": ">",
   "list.selectedSignText": " ",
-  "coc.preferences.rootPatterns":[".eslintrc.json"],
+  "coc.preferences.rootPatterns":[".git", ".eslintrc.json"],
   "coc.preferences.hoverTarget": "float",
 
   "eslint.probe": [
@@ -41,7 +41,8 @@
   "eslint.workingDirectories": [
     ".",
     { "directory": "./apps/prism", "changeProcessCWD": true },
-    { "directory": "./apps/permissions", "changeProcessCWD": true }
+    { "directory": "./apps/permissions", "changeProcessCWD": true },
+    /* { "directory": "./apps/job-request-service", "changeProcessCWD": true } */
   ],
   "eslint.autoFixOnSave": false,
   "eslint.alwaysShowStatus": true,
@@ -71,8 +72,10 @@
   "explorer.width": 55,
   "explorer.icon.enableNerdfont": true,
   "explorer.previewAction.onHover": false,
-  "explorer.icon.enableVimDevicons": false,
+  "explorer.icon.source": "vim-devicons",
+
   "explorer.file.showHiddenFiles": true,
+  "explorer.root.strategies": ["keep"],
   "explorer.buffer.root.template": "[icon & 1] OPEN EDITORS",
   "explorer.file.root.template": "[icon & 1] PROJECT ([root])",
   "explorer.file.child.template": "[git | 2] [selection | clip | 1] [indent][icon | 1] [diagnosticError & 1][filename omitCenter 1][modified][readonly] [linkIcon & 1][link growRight 1 omitCenter 5]",

@@ -8,18 +8,17 @@ call plug#begin("~/.vim/plugged")
   " Dealing with Files
   Plug 'tpope/vim-eunuch'
   " Identify and auto change the working directory to file parent
-  Plug 'airblade/vim-rooter'
+  " Plug 'airblade/vim-rooter'
   " Auto Pairing for ( { [ ] } )
   Plug 'jiangmiao/auto-pairs'
   " Closing tags in HTML
   Plug 'alvan/vim-closetag'
-  " Delete the nerdree plugins once COC-explorer is setup 
-  Plug 'scrooloose/nerdtree'
-  Plug 'tiagofumo/vim-nerdtree-syntax-highlight'
   "Status Line configuration
-  Plug 'vim-airline/vim-airline'
-  " Ranger File Explorer
-  Plug 'kevinhwang91/rnvimr'
+  Plug 'nvim-lualine/lualine.nvim'
+  Plug 'akinsho/bufferline.nvim'
+  "Icons
+  Plug 'kyazdani42/nvim-web-devicons'
+  Plug 'ryanoasis/vim-devicons'
   " Git
   Plug 'airblade/vim-gitgutter'
   Plug 'tpope/vim-fugitive'
@@ -27,15 +26,14 @@ call plug#begin("~/.vim/plugged")
   Plug 'junegunn/gv.vim'
   Plug 'rhysd/git-messenger.vim'
   " Floating Terminal 
-  Plug  'voldikss/vim-floaterm'
+  Plug 'voldikss/vim-floaterm'
   " Start Screen
-  Plug 'mhinz/vim-startify'
+  Plug 'glepnir/dashboard-nvim'
+  "Plug 'mhinz/vim-startify'
   " View tag info with support for both LSP and universal ctags
   Plug 'liuchengxu/vista.vim'
   " Get a popup which explains what certain key presses do after leader
   Plug 'liuchengxu/vim-which-key'
-  " Custom snippets when coding
-  Plug 'honza/vim-snippets'
   " More detailed undo history
   Plug 'mbbill/undotree'
   " Auto close html tags
@@ -46,11 +44,12 @@ call plug#begin("~/.vim/plugged")
   Plug 'norcalli/nvim-colourizer.lua'
   " Rainbow brackets
   Plug 'luochen1990/rainbow'
-  " Icons
-  Plug 'ryanoasis/vim-devicons'
+  " fuzzy find with telescope
+  Plug 'nvim-lua/plenary.nvim'
+  Plug 'nvim-telescope/telescope.nvim'
   " Fuzzy find
-  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-  Plug 'junegunn/fzf.vim'
+  " Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+  " Plug 'junegunn/fzf.vim'
   " <3 COC 
   Plug 'neoclide/coc.nvim', {'branch': 'release'}
   " More Syntax support

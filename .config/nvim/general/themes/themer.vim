@@ -1,9 +1,18 @@
-colorscheme gruvbox
-set background=dark
-let g:gruvbox_contrast_dark = "hard"
-let g:gruvbox_sign_column = "bg0"
-let g:gruvbox_invert_selection =0
-let g:airline_theme = "gruvbox"
+"Default theme for main load
+if (has("termguicolors"))
+ set termguicolors
+endif
+colorscheme nord
+let g:nord_italic=1
+let g:nord_underline=1
+" let g:AirlineTheme=nord
+
+" colorscheme gruvbox
+" set background=dark
+" let g:gruvbox_contrast_dark = "hard"
+" let g:gruvbox_sign_column = "bg0"
+" let g:gruvbox_invert_selection =0
+" let g:airline_theme = "gruvbox"
 
 let g:colorSchemeList = {}
 let g:colorSchemeList['Rigel'] = [

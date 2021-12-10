@@ -1,9 +1,5 @@
 "Brody yackson NeoVim Config
 
-
-" Polyglot config needs to come first
-source $HOME/.config/nvim/plug-configs/polyglot.vim
-
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " General Settings and Plugins
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""

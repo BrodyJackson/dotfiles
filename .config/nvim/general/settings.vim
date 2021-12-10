@@ -37,6 +37,7 @@ set termguicolors
 set signcolumn=yes" Needed for git solution that uses sign column
 set scrolloff=8
 set noshowmode
+set numberwidth=1 "set the number column right beside the gutter (default is 4)
 set clipboard=unnamedplus" Use the system clipboard
 set guifont=Fira\ Code\ Nerd\ Font
 

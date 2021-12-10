@@ -82,4 +82,5 @@ sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.
 nvim +PlugInstall
 
 # Mac OS defaults
-defaults write NSGlobalDomain KeyRepeat -int 1
+defaults write NSGlobalDomain KeyRepeat -int 1 # key repeat speed
+defaults -currentHost write -g AppleFontSmoothing -int 0 # turn off garbage font smoothing

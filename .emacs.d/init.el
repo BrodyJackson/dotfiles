@@ -82,6 +82,21 @@
 (when (memq window-system '(mac ns x))
   (exec-path-from-shell-initialize))
 
+;; git
+(use-package magit
+  :ensure t
+  :commands (magit-status magit-get-current-branch)
+  :custom (magit-git-executable "/usr/bin/git")
+  :config
+  (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
+  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent))
+
+;; only refresh the status buffer if it is the active buffer
+(setq magit-refresh-status-buffer nil)
+
 ;; Enable vertico
 (use-package vertico
   :bind (:map vertico-map
@@ -173,6 +188,17 @@
   :config
   (setq which-key-idle-delay 1))
 
+(defun brody/evil-hook ()
+  (dolist (mode '(custom-mode
+                  eshell-mode
+                  git-rebase-mode
+                  term-mode))
+  (add-to-list 'evil-emacs-state-modes mode)))
+
+(use-package undo-tree
+  :init
+  (global-undo-tree-mode 1))
+
 (use-package evil
   :init
   (setq evil-want-integration t)
@@ -180,7 +206,10 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   (setq evil-shift-width 2)
+  (setq evil-respect-visual-line-mode t)
+  (setq evil-undo-system 'undo-tree)
   :config
+  (add-hook 'evil-mode-hook 'brody/evil-hook)
   (evil-mode 1)
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
@@ -208,49 +237,35 @@
 
 (use-package general
   :config
-  (general-create-definer brody/leader-keys
-    :keymaps '(normal visual emacs magit-status-mode-map magit-log-mode-map magit-diff-mode-map magit-staged-section-map)
-    :prefix "SPC"
-    :global-prefix "SPC")
+  (general-evil-setup t)
 
-  (brody/leader-keys
-    ;; root bindings
-    "v"  '(split-window-right :which-key "vertical split")
-    "h"  '(split-window-below :which-key "horizontal split")
-    "o"  '(consult-ripgrep :which-key "Search Project")
-    "d"  '(delete-window :which-key "kill current window")
-    "D"  '((lambda () (interactive) (kill-current-buffer) (delete-window)) :which-key "kill current buffer")
-    "m"  '(brody/toggle-maximize-buffer :which-key "Toggle Maximize")
-    "="  '(balance-windows :which-key "equalize windows")
-    ;; toggles section
-    "t"  '(:ignore t :which-key "toggles")
-    "tt" '(consult-theme :which-key "choose theme")
-    ;; buffer section
-    "b" '(:ignore t :which-key "Buffers")
-    "bk"  '(kill-current-buffer :which-key "kill buffer")
-    ;; git commands
-    "g" '(:ignore t :which-key "Git")
-    "gs" '(magit-status :which-key "magit status")
-    ))
+  (general-create-definer brody/leader-key-def
+    :keymaps '(normal visual emacs) ;;magit-status-mode-map magit-log-mode-map magit-diff-mode-map magit-staged-section-map git-rebase-mode-map)
+    :prefix "SPC"
+    :global-prefix "SPC"))
+
+(brody/leader-key-def
+  ;; root bindings
+  "v"  '(split-window-right :which-key "vertical split")
+  "h"  '(split-window-below :which-key "horizontal split")
+  "o"  '(consult-ripgrep :which-key "Search Project")
+  "d"  '(delete-window :which-key "kill current window")
+  "D"  '((lambda () (interactive) (kill-current-buffer) (delete-window)) :which-key "kill current buffer")
+  "m"  '(brody/toggle-maximize-buffer :which-key "Toggle Maximize")
+  "="  '(balance-windows :which-key "equalize windows")
+  ;; toggles section
+  "t"  '(:ignore t :which-key "toggles")
+  "tt" '(consult-theme :which-key "choose theme")
+  ;; buffer section
+  "b" '(:ignore t :which-key "Buffers")
+  "bk"  '(kill-current-buffer :which-key "kill buffer")
+  ;; git commands
+  "g" '(:ignore t :which-key "Git")
+  "gs" '(magit-status :which-key "magit status"))
 
 (general-define-key
    :keymaps 'transient-base-map
    "<escape>" 'transient-quit-one)
-
-;; git
-(use-package magit
-  :ensure t
-  :config
-  (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
-  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
-  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
-  (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
-  (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-upstream-or-recent)
-  :custom (magit-git-executable "/usr/bin/git")
-  :commands (magit-status magit-get-current-branch))
-
-;; only refresh the status buffer if it is the active buffer
-(setq magit-refresh-status-buffer nil)
 
 ;; workspaces using perspective
 (use-package perspective
@@ -335,13 +350,13 @@
   :ensure t
   :hook (
 	 (web-mode . lsp-deferred)
-	 (lsp-mode . lsp-enable-which-key-integration)
-	 )
+	 (lsp-mode . lsp-enable-which-key-integration))
   :bind (:map lsp-mode-map
               ("C-c TAB" . completion-at-point)
               ("TAB" . nil))
   :commands lsp-deferred
   :custom
+  (lsp-clients-typescript-server-args '("--stdio" "--tsserver-log-file" "/tmp/stderr"))
   (lsp-headerline-breadcrumb-enable nil))
 
 (use-package lsp-ui
@@ -418,7 +433,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(unicode-fonts which-key web-mode vertico use-package typescript-mode treemacs-projectile treemacs-perspective treemacs-persp treemacs-magit treemacs-evil treemacs-all-the-icons smooth-scroll rainbow-delimiters orderless multi-vterm marginalia lsp-ui js2-mode ivy-rich helpful general flycheck exec-path-from-shell evil-collection doom-themes doom-modeline counsel-projectile company affe)))
+   '(undo-tree projectile unicode-fonts which-key web-mode vertico use-package typescript-mode treemacs-projectile treemacs-perspective treemacs-persp treemacs-magit treemacs-evil treemacs-all-the-icons smooth-scroll rainbow-delimiters orderless multi-vterm marginalia lsp-ui js2-mode ivy-rich helpful general flycheck exec-path-from-shell evil-collection doom-themes doom-modeline counsel-projectile company affe)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

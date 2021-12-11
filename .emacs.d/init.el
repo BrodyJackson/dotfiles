@@ -80,6 +80,7 @@
 ;; get shell variables loading properly in emacs commented for now in case it was slowing things down
 (use-package exec-path-from-shell)
 (when (memq window-system '(mac ns x))
+  (exec-path-from-shell-copy-env "PRISM_NPM_TOKEN")
   (exec-path-from-shell-initialize))
 
 ;; git

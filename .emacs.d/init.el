@@ -1,24 +1,50 @@
 (defvar brody/default-font-size 140)
+(defvar brody/default-variable-font-size 140)
 
 (setq inhibit-startup-message t)
 
 (scroll-bar-mode -1)
 (tool-bar-mode -1)
 (set-fringe-mode 10)
-(setq-default indent-tabs-mode nil)
-(load-theme 'wombat)
 (menu-bar-mode -1)  
+(setq-default indent-tabs-mode nil)
 (setq-default tab-width 2)
+
+;; Revert Dired and other buffers
+(setq global-auto-revert-non-file-buffers t)
+;; Revert buffers when the underlying file has changed
+(global-auto-revert-mode 1)
+
 ;; automatic matching
 (electric-pair-mode 1)
 ;; turn off line wrapping
 (setq-default truncate-lines t)
 
+;; when in special mode (i.e logging) we want to see wrapping
+(add-hook 'special-mode-hook
+          (lambda ()
+            (setq truncate-lines nil)))
+
 ;; Make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+;; (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 ;; backups to single file
-(setq backup-directory-alist '(("" . "~/.emacs.d/backup")))
+(defvar backup-dir "~/.emacs.d/backup/")
+(setq backup-directory-alist (list (cons "." backup-dir)))
+
+;; dont let custom variabled dirty init.el
+(setq custom-file (concat user-emacs-directory "/custom.el"))
+
+;; don't create lockfiles
+(setq create-lockfiles nil)
+
+;; ignore docstring warnings in native compilation
+(setq byte-compile-warnings '(not docstrings))
+
+;; Make gc pauses faster by decreasing the threshold. recommended by LSP docs
+(setq gc-cons-threshold (* 2 1000 1000))
+;; set read process output max, recommended by LSP docs
+(setq read-process-output-max (* 1024 1024))
 
 ;; evil keybindings that need to get unbound
 (with-eval-after-load 'evil-maps
@@ -45,6 +71,9 @@
 
 
 (set-face-attribute 'default nil :font "jetbrainsmono nerd font mono" :height brody/default-font-size)
+;; Set the variable pitch face
+(set-face-attribute 'variable-pitch nil :font "jetbrainsmono nerd font mono" :height brody/default-variable-font-size)
+
 ;; Initialize package sources
 (require 'package)
 
@@ -73,13 +102,14 @@
 (dolist (mode '(org-mode-hook
                 term-mode-hook
                 shell-mode-hook
-		vterm-mode-hook
+		            vterm-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
     
 ;; get shell variables loading properly in emacs commented for now in case it was slowing things down
 (use-package exec-path-from-shell)
 (when (memq window-system '(mac ns x))
+  (setenv "SHELL" "bin/zsh")
   (exec-path-from-shell-copy-env "PRISM_NPM_TOKEN")
   (exec-path-from-shell-initialize))
 
@@ -87,9 +117,10 @@
 (use-package magit
   :ensure t
   :commands (magit-status magit-get-current-branch)
-  :custom (magit-git-executable "/usr/bin/git")
+  :custom
+  (magit-git-executable "/usr/bin/git")
+  (magit-save-repository-buffers nil)
   :config
-  (remove-hook 'magit-status-sections-hook 'magit-insert-tags-header)
   (remove-hook 'magit-status-sections-hook 'magit-insert-unpushed-to-pushremote)
   (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-pushremote)
   (remove-hook 'magit-status-sections-hook 'magit-insert-unpulled-from-upstream)
@@ -207,7 +238,7 @@
   (setq evil-want-C-u-scroll t)
   (setq evil-want-C-i-jump nil)
   (setq evil-shift-width 2)
-  (setq evil-respect-visual-line-mode t)
+  ;; (setq evil-respect-visual-line-mode t)
   (setq evil-undo-system 'undo-tree)
   :config
   (add-hook 'evil-mode-hook 'brody/evil-hook)
@@ -219,8 +250,8 @@
   (define-key evil-motion-state-map (kbd "s-k") 'evil-window-up)
   (define-key evil-motion-state-map (kbd "s-l") 'evil-window-right)
    ;;Use visual line motions even outside of visual-line-mode buffers
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  ;;(evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  ;;(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
   (evil-define-key 'normal magit-mode-map (kbd "SPC") nil)
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -254,19 +285,46 @@
   "D"  '((lambda () (interactive) (kill-current-buffer) (delete-window)) :which-key "kill current buffer")
   "m"  '(brody/toggle-maximize-buffer :which-key "Toggle Maximize")
   "="  '(balance-windows :which-key "equalize windows")
+  "e"  '(neotree-toggle :which-key "explorer")
   ;; toggles section
   "t"  '(:ignore t :which-key "toggles")
   "tt" '(consult-theme :which-key "choose theme")
   ;; buffer section
   "b" '(:ignore t :which-key "Buffers")
   "bk"  '(kill-current-buffer :which-key "kill buffer")
+  ;; projects and perspectives
+  "f" '(:ignore t :which-key "Persp/Projects")
+  "ff"  '(persp-switch :which-key "kill buffer")
   ;; git commands
   "g" '(:ignore t :which-key "Git")
   "gs" '(magit-status :which-key "magit status"))
 
+;; all below is for makin escape quit things instead of C-g
 (general-define-key
    :keymaps 'transient-base-map
    "<escape>" 'transient-quit-one)
+
+(defun brody/minibuffer-keyboard-quit ()
+  "Abort recursive edit.
+In Delete Selection mode, if the mark is active, just deactivate it;
+then it takes a second \\[keyboard-quit] to abort the minibuffer."
+  (interactive)
+  (if (and delete-selection-mode transient-mark-mode mark-active)
+      (setq deactivate-mark  t)
+    (when (get-buffer "*Completions*") (delete-windows-on "*Completions*"))
+    (abort-recursive-edit)))
+
+(general-define-key
+ :keymaps '(normal visual global)
+ [escape] 'keyboard-quit)
+
+(general-define-key
+ :keymaps '(minibuffer-local-map
+	    minibuffer-local-ns-map
+	    minibuffer-local-completion-map
+	    minibuffer-local-must-match-map
+	    minibuffer-local-isearch-map)
+ [escape] 'brody/minibuffer-keyboard-quit)
 
 ;; workspaces using perspective
 (use-package perspective
@@ -340,11 +398,13 @@
   :config (global-company-mode t))
 
 ;; lsp-mode
+;; make sure you use M-x lsp-install-server to install the servers that you need
 (setq lsp-log-io nil) ;; Don't log everything = speed
 (setq lsp-keymap-prefix "C-c l")
 (setq lsp-restart 'auto-restart)
 (setq lsp-diagnostics-provider :flycheck)
 (setq lsp-completion-provider :capf)
+;;(setq lsp-eslint-server-command '("node" "/Users/brody.jackson/.vscode/extensions/dbaeumer.vscode-eslint-2.2.2/server/out/eslintServer.js" "--stdio"))
 (global-set-key (kbd "C-.") #'lsp-ui-peek-find-definitions)
 
 (use-package lsp-mode
@@ -362,7 +422,7 @@
 
 (use-package lsp-ui
   :ensure t
-  :commands lsp-ui-mode)
+  :commands lsp-ui-mode
   :config
   (setq lsp-ui-sideline-enable t)
   (setq lsp-ui-sideline-show-hover nil)
@@ -370,8 +430,18 @@
   (setq lsp-ui-sideline-enable t)
   (setq lsp-ui-sideline-show-diagnostics t)
   (setq lsp-ui-sideline-show-code-actions t)
-  (setq lsp-ui-doc-enable t)
+  (setq lsp-ui-doc-enable t))
 
+(use-package neotree
+  :config
+  (setq neo-smart-open t)
+  (setq projectile-switch-project-action 'neotree-projectile-action)
+  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+  (setq-default neo-show-hidden-files t)
+  (setq neo-window-width 60))
+
+;; forced to have treemacs on in order to have dap mode work
+;; it's unusably slow in my environment so would need to fix that if want to actually use
 ;; (use-package treemacs
 ;;   :ensure t
 ;;   :defer t
@@ -411,6 +481,9 @@
 ;;   :ensure t
 ;;   :config (treemacs-set-scope-type 'Perspectives))
 
+;; (use-package lsp-treemacs)
+
+
 (defun brody/toggle-maximize-buffer () "Maximize buffer"
   (interactive)
   (if (= 1 (length (window-list)))
@@ -423,22 +496,111 @@
 (use-package vterm
   :ensure t)
 
-(use-package multi-vterm
-  :ensure t)
+;; (use-package multi-vterm
+;;   :ensure t)
+
+;; (use-package dap-mode
+;;   :custom
+;;   (lsp-enable-dap-auto-configure nil)
+;;   :config
+;;   (dap-ui-mode 1)
+;;   (dap-tooltip-mode 1)
+;;   (dap-ui-controls-mode 1)
+;;   (require 'dap-node)
+;;   (dap-node-setup)
+;;   (require 'dap-chrome)
+;;   (dap-chrome-setup))
 
 (set-face-attribute 'fringe nil :background nil)
 
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   '(undo-tree projectile unicode-fonts which-key web-mode vertico use-package typescript-mode treemacs-projectile treemacs-perspective treemacs-persp treemacs-magit treemacs-evil treemacs-all-the-icons smooth-scroll rainbow-delimiters orderless multi-vterm marginalia lsp-ui js2-mode ivy-rich helpful general flycheck exec-path-from-shell evil-collection doom-themes doom-modeline counsel-projectile company affe)))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(vertico-group-separator ((t (:foreground "#fca503"))))
- '(vertico-group-title ((t (:foreground "#fca503")))))
+;; ORG MODE SETUP
+;; inspired from https://www.mtsolitary.com/20210318221148-emacs-configuration/
+
+;; should I remove the visual line mode? 
+(defun brody/org-mode-setup ()
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
+(use-package org
+  :hook (org-mode . brody/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (setq org-agenda-start-with-log-mode t)
+  (setq org-log-done 'time)
+  (setq org-log-into-drawer t)
+
+  ;; setup my agenda files
+  (setq org-agenda-files
+	'("~/Dropbox/Brody/inbox.org"
+	  "~/Dropbox/Brody/personal.org"
+	  "~/Dropbox/Brody/work.org"
+	  "~/Dropbox/Brody/projects.org"
+	  "~/Dropbox/Brody/calendar.org"
+	  "~/Dropbox/Brody/people.org"))
+
+  (setq org-agenda-prefix-format
+       '((agenda . " %i %?-12t% s")
+	 (todo   . " %i")
+	 (tags   . " %i %-12:c")
+	 (search . " %i %-12:c")))
+
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+          (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+
+  (setq org-refile-targets '((nil :maxlevel . 9)
+                             (org-agenda-files :maxlevel . 9)))
+
+  (setq org-refile-use-outline-path 'file)
+  (setq org-outline-path-complete-in-steps nil)
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+  (setq org-tag-alist
+        '((:startgroup)
+                                        ; Put mutually exclusive tags here
+          (:endgroup)
+          ("@errand" . ?E)
+          ("@home" . ?H)
+          ("@work" . ?W)
+          ("agenda" . ?a)
+          ("planning" . ?p)
+          ("publish" . ?P)
+          ("batch" . ?b)
+          ("note" . ?n)
+          ("idea" . ?i))))
+(setq org-agenda-log-mode-items '(closed clock state))
+(setq org-habit-show-all-today t)
+
+(use-package org-gcal
+  :after org
+  :config
+  (setq org-gcal-client-id "21698682594-j9a8dhtod9b9vtc8kce0lpkb04t86j2v.apps.googleusercontent.com"
+        org-gcal-client-secret "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"
+        org-gcal-file-alist '(("brodyjackson1@gmail.com" . "~/Dropbox/Brody/calendar.org") ;; main calendar
+                              ("0m9vfttjqlhnj8emel2ne11pt515dro5@import.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; work calendar
+                              ("h6614ocii67jjujj5cgg9fiudc@group.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; training schedule
+                              ("dbnqsuvdeukfftc6hteqk6r2ac@group.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; Flames games
+                              ("ubuvf0t6oeicdklvf9igijl0so@group.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; Timeboxing calendar
+                              ("71u25u7hm1e22bj1ufr9q7ik54t0dv0f@import.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; training schedule (TrainerRoad)
+                              ("ov0dk4m6dedaob7oqse4nrda4s@group.calendar.google.com" . "~/Dropbox/Brody/calendar.org")) ;; Man united calendar
+        org-gcal-local-timezone "America/Edmonton")
+  (add-hook 'org-agenda-mode-hook 'org-gcal-fetch)
+  (add-hook 'org-capture-after-finalize-hook 'org-gcal-fetch))
+
+(setq org-capture-templates
+      '(("j" "Journal" entry (file+datetree+prompt "~/Dropbox/Brody/journal.org") "* Daily Review %?\n  %i\n"))
+      )
+
+(use-package evil-org
+  :ensure t
+  :after org
+  :hook (org-mode . (lambda () evil-org-mode))
+  :config
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
+
+(add-hook 'org-mode-hook '(lambda () (setq fill-column 80)))
+(add-hook 'org-mode-hook 'auto-fill-mode)
+
+;;enable flyspell in text mode (Spell checking)
+(add-hook 'text-mode-hook 'flyspell-mode)

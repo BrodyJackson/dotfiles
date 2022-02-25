@@ -200,7 +200,7 @@
 
   ##################################[ dir: current directory ]##################################
   # Default current directory color.
-  typeset -g POWERLEVEL9K_DIR_FOREGROUND=31
+  typeset -g POWERLEVEL9K_DIR_FOREGROUND=005
   # If directory is too long, shorten some of its segments to the shortest possible unique
   # prefix. The shortened directory can be tab-completed to the original.
   typeset -g POWERLEVEL9K_SHORTEN_STRATEGY=truncate_to_last
@@ -210,7 +210,7 @@
   typeset -g POWERLEVEL9K_DIR_SHORTENED_FOREGROUND=103
   # Color of the anchor directory segments. Anchor segments are never shortened. The first
   # segment is always an anchor.
-  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=39
+  typeset -g POWERLEVEL9K_DIR_ANCHOR_FOREGROUND=005
   # Display anchor directory segments in bold.
   typeset -g POWERLEVEL9K_DIR_ANCHOR_BOLD=true
   # Don't shorten directories that contain any of these files. They are anchors.
@@ -381,7 +381,6 @@
       # If local branch name is at most 32 characters long, show it in full.
       # Otherwise show the first 12 … the last 12.
       # Tip: To always show local branch name in full without truncation, delete the next line.
-      (( $#branch > 32 )) && branch[13,-13]="…"  # <-- this line
       res+="${clean}${(g::)POWERLEVEL9K_VCS_BRANCH_ICON}${branch//\%/%%}"
     fi
 

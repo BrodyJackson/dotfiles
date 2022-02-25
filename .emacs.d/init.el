@@ -103,7 +103,8 @@
                 term-mode-hook
                 shell-mode-hook
 		            vterm-mode-hook
-                eshell-mode-hook))
+                eshell-mode-hook
+                neotree-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
     
 ;; get shell variables loading properly in emacs commented for now in case it was slowing things down
@@ -112,6 +113,10 @@
   (setenv "SHELL" "bin/zsh")
   (exec-path-from-shell-copy-env "PRISM_NPM_TOKEN")
   (exec-path-from-shell-initialize))
+
+;; color support for term mode
+(use-package eterm-256color
+  :hook (term-mode . eterm-256color-mode))
 
 ;; git
 (use-package magit
@@ -200,7 +205,7 @@
 	   (doom-modeline-lsp t)))
 
 (use-package doom-themes
-  :init (load-theme 'doom-nord t))
+  :init (load-theme 'doom-monokai-classic t))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -231,6 +236,19 @@
   :init
   (global-undo-tree-mode 1))
 
+;; maintain visual selection when indenting text in evil
+(defun brody/evil-shift-right ()
+  (interactive)
+  (evil-shift-right evil-visual-beginning evil-visual-end)
+  (evil-normal-state)
+  (evil-visual-restore))
+
+(defun brody/evil-shift-left ()
+  (interactive)
+  (evil-shift-left evil-visual-beginning evil-visual-end)
+  (evil-normal-state)
+  (evil-visual-restore))
+
 (use-package evil
   :init
   (setq evil-want-integration t)
@@ -252,6 +270,9 @@
    ;;Use visual line motions even outside of visual-line-mode buffers
   ;;(evil-global-set-key 'motion "j" 'evil-next-visual-line)
   ;;(evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+  (evil-define-key 'visual global-map (kbd ">") 'brody/evil-shift-right)
+  (evil-define-key 'visual global-map (kbd "<") 'brody/evil-shift-left)
+  (evil-define-key 'normal neotree-mode-map (kbd "RET") 'neotree-enter-ace-window)
   (evil-define-key 'normal magit-mode-map (kbd "SPC") nil)
 
   (evil-set-initial-state 'messages-buffer-mode 'normal)
@@ -266,6 +287,11 @@
   :ensure t
   :config
   (global-evil-surround-mode 1))
+
+(use-package evil-easymotion
+  :ensure t
+  :config
+  (evilem-default-keybindings (kbd "SPC i")))
 
 (use-package general
   :config
@@ -286,9 +312,11 @@
   "m"  '(brody/toggle-maximize-buffer :which-key "Toggle Maximize")
   "="  '(balance-windows :which-key "equalize windows")
   "e"  '(neotree-toggle :which-key "explorer")
+  "SPC" '(execute-extended-command :which-key "execute command")
   ;; toggles section
   "t"  '(:ignore t :which-key "toggles")
   "tt" '(consult-theme :which-key "choose theme")
+  "tn" '(brody/make-dean-happy :which-key "Toggle line numbers")
   ;; buffer section
   "b" '(:ignore t :which-key "Buffers")
   "bk"  '(kill-current-buffer :which-key "kill buffer")
@@ -391,7 +419,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;; company
 (setq company-minimum-prefix-length 1
-      company-idle-delay 0.0)
+      company-idle-delay 0.01
+      company-tooltip-idle-delay 0.01)
 
 (use-package company
   :ensure t
@@ -404,7 +433,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq lsp-restart 'auto-restart)
 (setq lsp-diagnostics-provider :flycheck)
 (setq lsp-completion-provider :capf)
-;;(setq lsp-eslint-server-command '("node" "/Users/brody.jackson/.vscode/extensions/dbaeumer.vscode-eslint-2.2.2/server/out/eslintServer.js" "--stdio"))
 (global-set-key (kbd "C-.") #'lsp-ui-peek-find-definitions)
 
 (use-package lsp-mode
@@ -435,10 +463,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (use-package neotree
   :config
   (setq neo-smart-open t)
+  (setq neo-window-position :right)
   (setq projectile-switch-project-action 'neotree-projectile-action)
-  (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+  (setq neo-theme 'icons)
   (setq-default neo-show-hidden-files t)
-  (setq neo-window-width 60))
+  (setq neo-window-width 60)
+  (setq neo-default-system-application "open"))
+
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp-deferred))))
 
 ;; forced to have treemacs on in order to have dap mode work
 ;; it's unusably slow in my environment so would need to fix that if want to actually use
@@ -458,8 +494,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;;    :bind
 ;;     (:map global-map
 ;;         ("M-0"       . treemacs-select-window)
-;;         ("C-x t 1"   . treemacs-delete-other-windows)
-;;         ("C-x t t"   . treemacs)
+;;         ("C-x t 1"   . treemacs-delete-other-windows) ;;         ("C-x t t"   . treemacs)
 ;;         ("C-x t B"   . treemacs-bookmark)
 ;;         ("C-x t C-t" . treemacs-find-file)
 ;;         ("C-x t M-t" . treemacs-find-tag)))
@@ -492,9 +527,15 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
       (window-configuration-to-register '_)
       (delete-other-windows))))
 
+(defun brody/make-dean-happy ()
+  (interactive)
+  (if (eq display-line-numbers-type 'relative)
+      (menu-bar--display-line-numbers-mode-absolute)
+    (menu-bar--display-line-numbers-mode-relative)))
+
 ;; terminal mode and multi term
-(use-package vterm
-  :ensure t)
+;; (use-package vterm
+;;   :ensure t)
 
 ;; (use-package multi-vterm
 ;;   :ensure t)
@@ -516,25 +557,42 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; ORG MODE SETUP
 ;; inspired from https://www.mtsolitary.com/20210318221148-emacs-configuration/
 
-;; should I remove the visual line mode? 
 (defun brody/org-mode-setup ()
   (org-indent-mode)
   (variable-pitch-mode 1)
-  (visual-line-mode 1))
+  (visual-line-mode 1)
+  (setq evil-auto-indent nil))
+
+;; store link for inbox capture
+(defun brody/org-capture-inbox ()
+     (interactive)
+     (call-interactively 'org-store-link)
+     (org-capture nil "i"))
+
+(define-key global-map (kbd "C-c i") 'brody/org-capture-inbox)
+(define-key global-map (kbd "C-c c") 'org-capture)
+(define-key global-map (kbd "C-c a") 'org-agenda)
 
 (use-package org
   :hook (org-mode . brody/org-mode-setup)
   :config
-  (setq org-ellipsis " ▾")
-  (setq org-agenda-start-with-log-mode t)
-  (setq org-log-done 'time)
-  (setq org-log-into-drawer t)
+  (setq org-ellipsis " ▾"
+        org-agenda-start-with-log-mode t
+        org-log-done 'time
+        org-log-into-drawer t
+        org-hide-emphasis-markers t
+        org-src-fontify-natively t
+        org-fontify-quote-and-verse-blocks t
+        org-src-tab-acts-natively t
+        org-edit-src-content-indentation 2
+        org-hide-block-startup nil
+        org-src-preserve-indentation nil
+        org-startup-folded 'content
+        org-cycle-separator-lines 2)
 
   ;; setup my agenda files
   (setq org-agenda-files
 	'("~/Dropbox/Brody/inbox.org"
-	  "~/Dropbox/Brody/personal.org"
-	  "~/Dropbox/Brody/work.org"
 	  "~/Dropbox/Brody/projects.org"
 	  "~/Dropbox/Brody/calendar.org"
 	  "~/Dropbox/Brody/people.org"))
@@ -549,9 +607,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
           (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
 
-  (setq org-refile-targets '((nil :maxlevel . 9)
+  (setq org-refile-targets '(("~/Dropbox/Brody/Notes/1_Personal/1.6_Archive.org" :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))
-
+  (setq org-blank-before-new-entry '((heading . t) (plain-list-item . t)))
   (setq org-refile-use-outline-path 'file)
   (setq org-outline-path-complete-in-steps nil)
   (advice-add 'org-refile :after 'org-save-all-org-buffers)
@@ -583,12 +641,18 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                               ("ubuvf0t6oeicdklvf9igijl0so@group.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; Timeboxing calendar
                               ("71u25u7hm1e22bj1ufr9q7ik54t0dv0f@import.calendar.google.com" . "~/Dropbox/Brody/calendar.org") ;; training schedule (TrainerRoad)
                               ("ov0dk4m6dedaob7oqse4nrda4s@group.calendar.google.com" . "~/Dropbox/Brody/calendar.org")) ;; Man united calendar
-        org-gcal-local-timezone "America/Edmonton")
+        org-gcal-local-timezone "America/Edmonton"
+        org-gcal-remove-cancelled-events t
+        org-gcal-remove-api-cancelled-events t)
   (add-hook 'org-agenda-mode-hook 'org-gcal-fetch)
   (add-hook 'org-capture-after-finalize-hook 'org-gcal-fetch))
 
 (setq org-capture-templates
-      '(("j" "Journal" entry (file+datetree+prompt "~/Dropbox/Brody/journal.org") "* Daily Review %?\n  %i\n"))
+      '(("j" "Journal" entry (file+datetree+prompt "~/Dropbox/Brody/journal.org") "* Daily Review %?\n %i\n")
+        ("t" "Milestone" entry (file+datetree+prompt "~/Dropbox/Brody/Notes/1_Personal/1.3_Milestones.org") "* %i\n")
+        ("i" "Inbox" entry (file "~/Dropbox/Brody/inbox.org") "* TODO %?\n /Entered on/ %U")
+        ("m" "Meeting" entry (file+datetree+prompt "~/Dropbox/Brody/Notes/3_Work/Enverus Meetings.org") "* %?\n %i\n")
+        ("n" "Note" entry  (file+headline "~/Dropbox/Brody/inbox.org" "Notes") "* Note\n /Entered on/ %U\n %?"))
       )
 
 (use-package evil-org
@@ -604,3 +668,89 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 ;;enable flyspell in text mode (Spell checking)
 (add-hook 'text-mode-hook 'flyspell-mode)
+
+(use-package org-download
+  :after org
+  :defer nil
+  :custom
+  (org-download-method 'directory)
+  (org-download-image-dir "~/Dropbox/Brody/images")
+  (org-download-heading-lvl nil)
+  (org-download-timestamp "%Y%m%d-%H%M%S_")
+  (org-image-actual-width 300)
+  (org-download-screenshot-method "/usr/local/bin/pngpaste %s")
+  ;; :bind
+  ;; ("C-M-y" . org-download-screenshot)
+  :config
+  (require 'org-download))
+
+;; Add an activated label onto a todo that gets tagged as NEXT
+(defun log-todo-next-creation-date (&rest ignore)
+  "Log NEXT creation time in the property drawer under the key 'ACTIVATED'"
+  (when (and (string= (org-get-todo-state) "NEXT")
+             (not (org-entry-get nil "ACTIVATED")))
+    (org-entry-put nil "ACTIVATED" (format-time-string "[%Y-%m-%d]"))))
+(add-hook 'org-after-todo-state-change-hook #'log-todo-next-creation-date)
+
+(setq org-agenda-custom-commands
+      '(("g" "Get Things Done (GTD)"
+         ((agenda ""
+                  ((org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'deadline))
+                   (org-deadline-warning-days 0)))
+          (todo "NEXT"
+                ((org-agenda-skip-function
+                  '(org-agenda-skip-entry-if 'deadline))
+                 (org-agenda-prefix-format "  %i %-12:c [%e] ")
+                 (org-agenda-overriding-header "\nTasks\n")))
+          (agenda nil
+                  ((org-agenda-entry-types '(:deadline))
+                   (org-agenda-format-date "")
+                   (org-deadline-warning-days 7)
+                   (org-agenda-skip-function
+                    '(org-agenda-skip-entry-if 'notregexp "\\* NEXT"))
+                   (org-agenda-overriding-header "\nDeadlines")))
+          (tags-todo "inbox"
+                     ((org-agenda-prefix-format "  %?-12t% s")
+                      (org-agenda-overriding-header "\nInbox\n")))
+          (tags "CLOSED>=\"<today>\""
+                ((org-agenda-overriding-header "\nCompleted today\n")))))))
+
+;; Org appearance which is taken directly from https://config.daviwil.com/emacs
+(use-package org-superstar
+  :after org
+  :hook (org-mode . org-superstar-mode)
+  :custom
+  (org-superstar-remove-leading-stars t)
+  (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+;; Increase the size of various headings
+(general-with-eval-after-load 'org-faces
+  (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
+  (dolist (face '((org-level-1 . 1.2)
+                  (org-level-2 . 1.1)
+                  (org-level-3 . 1.05)
+                  (org-level-4 . 1.0)
+                  (org-level-5 . 1.1)
+                  (org-level-6 . 1.1)
+                  (org-level-7 . 1.1)
+                  (org-level-8 . 1.1)))
+  (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face))))
+
+;; Make sure org-indent face is available
+(require 'org-indent)
+
+;; Ensure that anything that should be fixed-pitch in Org files appears that way
+(set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+(set-face-attribute 'org-table nil  :inherit 'fixed-pitch)
+(set-face-attribute 'org-formula nil  :inherit 'fixed-pitch)
+(set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-indent nil :inherit '(org-hide fixed-pitch))
+(set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+(set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+(set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+
+;; Get rid of the background on column views
+(set-face-attribute 'org-column nil :background nil)
+(set-face-attribute 'org-column-title nil :background nil)

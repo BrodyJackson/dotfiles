@@ -42,7 +42,9 @@
 (setq byte-compile-warnings '(not docstrings))
 
 ;; Make gc pauses faster by decreasing the threshold. recommended by LSP docs
-(setq gc-cons-threshold (* 2 1000 1000))
+(setq gc-cons-threshold 100000000)
+;; (setq gc-cons-threshold (* 2 1000 1000))
+
 ;; set read process output max, recommended by LSP docs
 (setq read-process-output-max (* 1024 1024))
 
@@ -134,6 +136,21 @@
 ;; only refresh the status buffer if it is the active buffer
 (setq magit-refresh-status-buffer nil)
 
+;; blame package like vscode
+(use-package blamer
+  :ensure t
+  :defer 20
+  :custom
+  (blamer-idle-time 0.3)
+  (blamer-min-offset 70)
+  :custom-face
+  (blamer-face ((t :foreground "#7a88cf"
+                    :background nil
+                    :height 140
+                    :italic t)))
+  :config
+  (global-blamer-mode 1))
+
 ;; Enable vertico
 (use-package vertico
   :bind (:map vertico-map
@@ -181,6 +198,11 @@
 (consult-customize
  consult-ripgrep consult-git-grep consult-grep consult-theme
  :preview-key (kbd "C-'"))
+
+;; Ripgrep the current word from project root
+(defun consult-ripgrep-at-point ()
+  (interactive)
+  (consult-ripgrep (brody/get-project-root)(thing-at-point 'symbol)))
 
 ;; use orderless for completion style
 (use-package orderless
@@ -288,6 +310,11 @@
   :config
   (global-evil-surround-mode 1))
 
+(use-package evil-commentary
+  :ensure t
+  :config
+  (evil-commentary-mode 1))
+
 (use-package evil-easymotion
   :ensure t
   :config
@@ -307,6 +334,7 @@
   "v"  '(split-window-right :which-key "vertical split")
   "h"  '(split-window-below :which-key "horizontal split")
   "o"  '(consult-ripgrep :which-key "Search Project")
+  "O"  '(consult-ripgrep-at-point :which-key "Search Project")
   "d"  '(delete-window :which-key "kill current window")
   "D"  '((lambda () (interactive) (kill-current-buffer) (delete-window)) :which-key "kill current buffer")
   "m"  '(brody/toggle-maximize-buffer :which-key "Toggle Maximize")
@@ -325,6 +353,7 @@
   "ff"  '(persp-switch :which-key "kill buffer")
   ;; git commands
   "g" '(:ignore t :which-key "Git")
+  "gi" '(blamer-show-commit-info :which-key "git blame")
   "gs" '(magit-status :which-key "magit status"))
 
 ;; all below is for makin escape quit things instead of C-g
@@ -420,7 +449,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; company
 (setq company-minimum-prefix-length 1
       company-idle-delay 0.01
-      company-tooltip-idle-delay 0.01)
+      company-tooltip-idle-delay 0.1
+      company-dabbrev-downcase 0)
 
 (use-package company
   :ensure t
@@ -431,6 +461,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (setq lsp-log-io nil) ;; Don't log everything = speed
 (setq lsp-keymap-prefix "C-c l")
 (setq lsp-restart 'auto-restart)
+;; testing to see if plists speed things up. remove if still  slow
+(setq lsp-use-plists t)
 (setq lsp-diagnostics-provider :flycheck)
 (setq lsp-completion-provider :capf)
 (global-set-key (kbd "C-.") #'lsp-ui-peek-find-definitions)
@@ -455,10 +487,12 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq lsp-ui-sideline-enable t)
   (setq lsp-ui-sideline-show-hover nil)
   (setq lsp-ui-doc-position 'bottom)
-  (setq lsp-ui-sideline-enable t)
   (setq lsp-ui-sideline-show-diagnostics t)
   (setq lsp-ui-sideline-show-code-actions t)
-  (setq lsp-ui-doc-enable t))
+  (setq lsp-ui-doc-enable nil))
+
+;; make sure that lsp indent uses current webmode indent attribute
+(setf (alist-get 'web-mode lsp--formatting-indent-alist) 'web-mode-code-indent-offset)
 
 (use-package neotree
   :config
@@ -475,6 +509,8 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook (python-mode . (lambda ()
                           (require 'lsp-pyright)
                           (lsp-deferred))))
+
+(use-package dockerfile-mode)
 
 ;; forced to have treemacs on in order to have dap mode work
 ;; it's unusably slow in my environment so would need to fix that if want to actually use
@@ -540,19 +576,28 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; (use-package multi-vterm
 ;;   :ensure t)
 
-;; (use-package dap-mode
-;;   :custom
-;;   (lsp-enable-dap-auto-configure nil)
-;;   :config
-;;   (dap-ui-mode 1)
-;;   (dap-tooltip-mode 1)
-;;   (dap-ui-controls-mode 1)
-;;   (require 'dap-node)
-;;   (dap-node-setup)
-;;   (require 'dap-chrome)
-;;   (dap-chrome-setup))
+(use-package dap-mode
+  :custom
+  (lsp-enable-dap-auto-configure nil)
+  :config
+  (dap-ui-mode 1)
+  (dap-tooltip-mode 1)
+  (dap-ui-controls-mode 1)
+  ;; open the hydra when breakpoint is hit
+  (add-hook 'dap-stopped-hook (lambda (arg) (call-interactively #'dap-hydra)))
+  (require 'dap-node)
+  (dap-node-setup)
+  (require 'dap-chrome)
+  (dap-chrome-setup))
 
 (set-face-attribute 'fringe nil :background nil)
+
+
+(use-package markdown-mode
+  :ensure t
+  :mode ("README\\.md\\'" . gfm-mode)
+  :init (setq markdown-command "multimarkdown"))
+
 
 ;; ORG MODE SETUP
 ;; inspired from https://www.mtsolitary.com/20210318221148-emacs-configuration/
@@ -574,6 +619,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key global-map (kbd "C-c a") 'org-agenda)
 
 (use-package org
+  :ensure org-plus-contrib
   :hook (org-mode . brody/org-mode-setup)
   :config
   (setq org-ellipsis " ▾"
@@ -605,7 +651,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
   (setq org-todo-keywords
         '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
-          (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "CANC(k@)")))
+          (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "HOLD(h)" "|" "COMPLETED(c)" "INCOMPLETE(i)""CANC(k@)")))
 
   (setq org-refile-targets '(("~/Dropbox/Brody/Notes/1_Personal/1.6_Archive.org" :maxlevel . 9)
                              (org-agenda-files :maxlevel . 9)))
@@ -625,7 +671,17 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
           ("publish" . ?P)
           ("batch" . ?b)
           ("note" . ?n)
-          ("idea" . ?i))))
+          ("idea" . ?i)))
+  (add-hook 'org-mode-hook '(lambda () (setq fill-column 80)))
+  (add-hook 'org-mode-hook 'auto-fill-mode)
+  (add-hook 'org-mode-hook (lambda () (blamer-mode -1)))
+  (add-hook 'org-mode-hook (lambda () (company-mode -1)))
+)
+
+;;shortcuts to store link and insert
+(global-set-key (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c C-l") 'org-insert-link)
+
 (setq org-agenda-log-mode-items '(closed clock state))
 (setq org-habit-show-all-today t)
 
@@ -662,9 +718,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :config
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
-
-(add-hook 'org-mode-hook '(lambda () (setq fill-column 80)))
-(add-hook 'org-mode-hook 'auto-fill-mode)
 
 ;;enable flyspell in text mode (Spell checking)
 (add-hook 'text-mode-hook 'flyspell-mode)
@@ -737,8 +790,60 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
                   (org-level-8 . 1.1)))
   (set-face-attribute (car face) nil :font "Iosevka Aile" :weight 'medium :height (cdr face))))
 
+;; don't grey out done tasks
+(custom-set-faces
+ '(org-done ((t (:foreground "PaleGreen"
+                 :weight normal))))
+ '(org-headline-done
+            ((((class color) (min-colors 16))
+               (:foreground "LightSalmon" )))))
+
+;; Allow markup to cross multiple new lines
+(setcar (nthcdr 4 org-emphasis-regexp-components) 5)
+(org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
+
+;;Setup snippets in org for structural blocks
+(require 'org-tempo)
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("js" . "src javascript"))
+
 ;; Make sure org-indent face is available
 (require 'org-indent)
+;; Make sure md is within the export menu
+(require 'ox-md nil t)
+
+;; ensure we can ignore header and tagged ignore blocks
+(require 'ox-extra)
+(ox-extras-activate '(latex-header-blocks ignore-headlines))
+
+;; -- latex setup --
+(require 'ox-latex)
+;; deleted unwanted file extensions after latexMK
+(setq org-latex-logfiles-extensions
+      (quote ("lof" "lot" "tex~" "aux" "idx" "log" "out" "toc" "nav" "snm" "vrb" "dvi" "fdb_latexmk" "blg" "brf" "fls" "entoc" "ps" "spl" "bbl" "xmpi" "run.xml" "bcf" "acn" "acr" "alg" "glg" "gls" "ist")))
+(setq org-latex-with-hyperref nil) ;; stop org adding hypersetup{author..} to latex export
+;;set no default packages
+(setq org-latex-default-packages-alist nil)
+(setq org-latex-packages-alist nil)
+(unless (boundp 'org-latex-classes)
+  (setq org-latex-classes nil))
+(setq org-export-latex-listings t) 
+;; function which will determine how to create latex pdf based on LATEX_CMD
+(defun my-auto-tex-cmd (backend)
+  (let ((texcmd)))
+  ;; default command: oldstyle latex via dvi
+  (setq texcmd "latexmk -pdflatex %f")        
+  ;; pdflatex -> .pdf
+  (if (string-match "LATEX_CMD: pdflatex" (buffer-string))
+      (setq texcmd "pdflatex -interaction nonstopmode -shell-escape -f %f"))
+  ;; xelatex -> .pdf
+  (if (string-match "LATEX_CMD: xelatex" (buffer-string))
+      (setq texcmd "xelatex -interaction nonstopmode -shell-escape -f %f"))
+  ;; LaTeX compilation command
+  (setq org-latex-to-pdf-process (list texcmd)))
+(add-hook 'org-export-before-processing-hook 'my-auto-tex-cmd)
 
 ;; Ensure that anything that should be fixed-pitch in Org files appears that way
 (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)

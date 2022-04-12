@@ -351,6 +351,10 @@
   ;; projects and perspectives
   "f" '(:ignore t :which-key "Persp/Projects")
   "ff"  '(persp-switch :which-key "kill buffer")
+  ;; debug section
+
+  "j" '(:ignore t :which-key "Debug")
+  "jk"  '(hydra-pause-resume :which-key "Toggle Menu")
   ;; git commands
   "g" '(:ignore t :which-key "Git")
   "gi" '(blamer-show-commit-info :which-key "git blame")
@@ -489,10 +493,9 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (setq lsp-ui-doc-position 'bottom)
   (setq lsp-ui-sideline-show-diagnostics t)
   (setq lsp-ui-sideline-show-code-actions t)
-  (setq lsp-ui-doc-enable nil))
-
-;; make sure that lsp indent uses current webmode indent attribute
-(setf (alist-get 'web-mode lsp--formatting-indent-alist) 'web-mode-code-indent-offset)
+  (setq lsp-ui-doc-enable nil)
+  ;; make sure that lsp indent uses current webmode indent attribute
+  (setf (alist-get 'web-mode lsp--formatting-indent-alist) 'web-mode-code-indent-offset))
 
 (use-package neotree
   :config
@@ -619,7 +622,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 (define-key global-map (kbd "C-c a") 'org-agenda)
 
 (use-package org
-  :ensure org-plus-contrib
+  :ensure org-contrib
   :hook (org-mode . brody/org-mode-setup)
   :config
   (setq org-ellipsis " ▾"
@@ -634,6 +637,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
         org-hide-block-startup nil
         org-src-preserve-indentation nil
         org-startup-folded 'content
+        org-export-preserve-breaks t
         org-cycle-separator-lines 2)
 
   ;; setup my agenda files
@@ -705,7 +709,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 
 (setq org-capture-templates
       '(("j" "Journal" entry (file+datetree+prompt "~/Dropbox/Brody/journal.org") "* Daily Review %?\n %i\n")
-        ("t" "Milestone" entry (file+datetree+prompt "~/Dropbox/Brody/Notes/1_Personal/1.3_Milestones.org") "* %i\n")
+        ("t" "Milestone" entry (file+datetree+prompt "~/Dropbox/Brody/journal.org") "* %i\n")
         ("i" "Inbox" entry (file "~/Dropbox/Brody/inbox.org") "* TODO %?\n /Entered on/ %U")
         ("m" "Meeting" entry (file+datetree+prompt "~/Dropbox/Brody/Notes/3_Work/Enverus Meetings.org") "* %?\n %i\n")
         ("n" "Note" entry  (file+headline "~/Dropbox/Brody/inbox.org" "Notes") "* Note\n /Entered on/ %U\n %?"))
@@ -775,8 +779,10 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   :hook (org-mode . org-superstar-mode)
   :custom
   (org-superstar-remove-leading-stars t)
-  (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●")))
-
+  (org-superstar-headline-bullets-list '("◉" "○" "●" "○" "●" "○" "●"))
+  (org-superstar-item-bullet-alist '((?* . ?•)
+                                        (?+ . ?➤)
+                                        (?- . ?•))))
 ;; Increase the size of various headings
 (general-with-eval-after-load 'org-faces
   (set-face-attribute 'org-document-title nil :font "Iosevka Aile" :weight 'bold :height 1.3)
@@ -798,9 +804,6 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
             ((((class color) (min-colors 16))
                (:foreground "LightSalmon" )))))
 
-;; Allow markup to cross multiple new lines
-(setcar (nthcdr 4 org-emphasis-regexp-components) 5)
-(org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
 
 ;;Setup snippets in org for structural blocks
 (require 'org-tempo)
@@ -859,3 +862,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
 ;; Get rid of the background on column views
 (set-face-attribute 'org-column nil :background nil)
 (set-face-attribute 'org-column-title nil :background nil)
+
+;; Allow markup to cross multiple new lines
+(setcar (nthcdr 4 org-emphasis-regexp-components) 5)
+(org-set-emph-re 'org-emphasis-regexp-components org-emphasis-regexp-components)
